@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SNS 사용 조절 앱</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Pretendard", sans-serif;
+    }
+
+    body {
+      background: #f4f6fb;
+      color: #222;
+      display: flex;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+
+    .phone {
+      width: 390px;
+      background: white;
+      border-radius: 30px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+
+    .header {
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      color: white;
+      padding: 30px 25px;
+    }
+
+    .header h1 {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      opacity: 0.9;
+      line-height: 1.5;
+    }
+
+    .content {
+      padding: 24px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 18px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+
+    .card h2 {
+      font-size: 20px;
+      margin-bottom: 15px;
+    }
+
+    .usage-time {
+      font-size: 42px;
+      font-weight: bold;
+      color: #4f46e5;
+      margin-bottom: 10px;
+    }
+
+    .progress-container {
+      width: 100%;
+      height: 14px;
+      background: #e5e7eb;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+
+    .progress {
+      width: 70%;
+      height: 100%;
+      background: linear-gradient(90deg, #4f46e5, #7c3aed);
+      transition: 0.4s;
+    }
+
+    .app-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .app-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f8fafc;
+      border-radius: 14px;
+      padding: 14px;
+    }
+
+    .app-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .icon {
+      width: 45px;
+      height: 45px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+    .instagram { background: #ec4899; }
+    .youtube { background: #ef4444; }
+    .tiktok { background: #111827; }
+
+    .warning {
+      background: #fef2f2;
+      border: 2px solid #f87171;
+      color: #991b1b;
+    }
+
+    .warning h3 {
+      margin-bottom: 8px;
+    }
+
+    .btn {
+      width: 100%;
+      border: none;
+      padding: 16px;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .slow-btn {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: white;
+    }
+
+    .slow-btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .focus-btn {
+      margin-top: 12px;
+      background: #4f46e5;
+      color: white;
+    }
+
+    .status {
+      margin-top: 14px;
+      text-align: center;
+      font-weight: bold;
+      color: #dc2626;
+    }
+
+    .footer {
+      text-align: center;
+      color: #6b7280;
+      font-size: 13px;
+      margin-top: 8px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="phone">
+
+    <div class="header">
+      <h1>Focus SNS</h1>
+      <p>
+        SNS 사용 시간을 분석하고<br>
+        과도한 사용을 줄여주는 집중 관리 앱
+      </p>
+    </div>
+
+    <div class="content">
+
+      <div class="card">
+        <h2>오늘의 SNS 사용 시간</h2>
+        <div class="usage-time" id="usageText">2시간 10분</div>
+        <p>목표 사용 시간: 1시간 30분</p>
+
+        <div class="progress-container">
+          <div class="progress" id="progressBar"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>앱별 사용 현황</h2>
+
+        <div class="app-list">
+
+          <div class="app-item">
+            <div class="app-info">
+              <div class="icon instagram">I</div>
+              <div>
+                <strong>Instagram</strong><br>
+                58분 사용
+              </div>
+            </div>
+            <span>⚠️</span>
+          </div>
+
+          <div class="app-item">
+            <div class="app-info">
+              <div class="icon youtube">Y</div>
+              <div>
+                <strong>YouTube Shorts</strong><br>
+                42분 사용
+              </div>
+            </div>
+            <span>⚠️</span>
+          </div>
+
+          <div class="app-item">
+            <div class="app-info">
+              <div class="icon tiktok">T</div>
+              <div>
+                <strong>TikTok</strong><br>
+                30분 사용
+              </div>
+            </div>
+            <span>정상</span>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="card warning">
+        <h3>⚠ SNS 과다 사용 감지</h3>
+        <p>
+          설정한 사용 시간을 초과했습니다.<br>
+          집중 모드를 활성화하시겠습니까?
+        </p>
+      </div>
+
+      <button class="btn slow-btn" onclick="activateSlowMode()">
+        인터넷 속도 제한 모드 활성화
+      </button>
+
+      <button class="btn focus-btn" onclick="startFocusMode()">
+        30분 집중 모드 시작
+      </button>
+
+      <div class="status" id="statusText"></div>
+
+      <div class="footer">
+        창의적 공학입문 설계 프로젝트<br>
+        SNS 중독 예방 및 사용 습관 개선 시스템
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+
+    let slowMode = false;
+
+    function activateSlowMode() {
+      const status = document.getElementById("statusText");
+
+      slowMode = !slowMode;
+
+      if (slowMode) {
+        status.innerHTML = "🚫 SNS 제한 모드 활성화됨 - 인터넷 속도 감소";
+      } else {
+        status.innerHTML = "✅ 제한 모드 해제됨";
+      }
+    }
+
+    function startFocusMode() {
+      const status = document.getElementById("statusText");
+      status.innerHTML = "⏳ 30분 집중 모드가 시작되었습니다.";
+    }
+
+    // 가짜 실시간 사용량 증가 효과
+    let progress = 70;
+
+    setInterval(() => {
+      if (progress < 100) {
+        progress += 1;
+        document.getElementById("progressBar").style.width = progress + "%";
+      }
+    }, 5000);
+
+  </script>
+
+</body>
+</html>
