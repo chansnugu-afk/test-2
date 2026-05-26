@@ -123,13 +123,6 @@ body{
     background:#ff3b3b;
     font-size:20px;
     display:none;
-    animation:blink 1s infinite;
-}
-
-@keyframes blink{
-    0%{opacity:1;}
-    50%{opacity:0.5;}
-    100%{opacity:1;}
 }
 
 /* 하단 메뉴 */
@@ -200,12 +193,22 @@ canvas{
     border-radius:15px;
     padding:15px;
     margin-top:15px;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+.historyCard:hover{
+    background:#343434;
 }
 
 .infoBox{
     margin-top:20px;
     font-size:18px;
     line-height:1.9;
+}
+
+.detailBox{
+    margin-top:20px;
 }
 
 </style>
@@ -244,11 +247,6 @@ canvas{
         <div class="card">
 
             <h2>현재 상태</h2>
-
-            <p>
-                물건이 일정 시간 이상 감지되면
-                사용자에게 알림을 전송합니다.
-            </p>
 
             <div class="infoBox">
 
@@ -302,21 +300,11 @@ canvas{
 
         <div class="card">
 
-            <h2>이전 압력값 기록</h2>
+            <h2>이전 사용 기록</h2>
 
-            <div class="historyCard">
-                <h3>기록 #1</h3>
-                <p>13:00 ~ 15:30</p>
-                <p>압력 변화 : 42 → 61 → 55 → 70</p>
-                <p>카페 사용 시간 : 2시간 30분</p>
-            </div>
+            <div id="historyContainer"></div>
 
-            <div class="historyCard">
-                <h3>기록 #2</h3>
-                <p>18:10 ~ 21:20</p>
-                <p>압력 변화 : 35 → 58 → 49 → 67</p>
-                <p>카페 사용 시간 : 3시간 10분</p>
-            </div>
+            <div class="detailBox" id="detailBox"></div>
 
         </div>
 
@@ -347,7 +335,7 @@ canvas{
 
         <svg class="iconSVG" viewBox="0 0 24 24">
             <circle cx="12" cy="12" r="3"/>
-            <path d="M19 12H22M2 12H5M12 2V5M12 19V22"/>
+            <path d="M19 12H22M2 12H5"/>
         </svg>
 
         <div class="navText">설정</div>
@@ -360,7 +348,7 @@ canvas{
 
         <svg class="iconSVG" viewBox="0 0 24 24">
             <path d="M3 3V21H21"/>
-            <path d="M7 16L11 12L14 15L20 8"/>
+            <path d="M7 16L11 15L14 15.5L20 14"/>
         </svg>
 
         <div class="navText">현재 그래프</div>
@@ -392,7 +380,12 @@ let connectSeconds = 0;
 let sameTime = 0;
 let interval = null;
 let warningSent = false;
-let pressureValue = 50;
+
+let historyData = [];
+
+let startTime = "";
+let currentGraphData = [];
+let currentGraphLabels = [];
 
 /* 페이지 이동 */
 
@@ -443,14 +436,15 @@ const pressureChart = new Chart(ctx, {
         responsive:true,
         scales:{
             y:{
-                beginAtZero:true
+                min:45,
+                max:55
             }
         }
     }
 
 });
 
-/* 연결 */
+/* 장치 연결/해제 */
 
 function toggleDevice(){
 
@@ -475,6 +469,16 @@ function toggleDevice(){
         warningSent = false;
         sameTime = 0;
 
+        currentGraphData = [];
+        currentGraphLabels = [];
+
+        let now = new Date();
+
+        startTime =
+            now.getHours().toString().padStart(2,'0')
+            + ":" +
+            now.getMinutes().toString().padStart(2,'0');
+
         topArea.classList.remove("danger");
         topArea.classList.add("safe");
         topArea.classList.add("connectedCompact");
@@ -486,7 +490,7 @@ function toggleDevice(){
             "연결된 기기 : Table Sensor #03";
 
         connectBtn.innerHTML =
-            "장치 해제하기";
+            "사용 그만하기";
 
         liveState.innerHTML =
             "압력 감지중";
@@ -498,6 +502,44 @@ function toggleDevice(){
     else{
 
         connected = false;
+
+        clearInterval(interval);
+
+        let now = new Date();
+
+        let endTime =
+            now.getHours().toString().padStart(2,'0')
+            + ":" +
+            now.getMinutes().toString().padStart(2,'0');
+
+        let totalMin =
+            Math.floor(connectSeconds / 60);
+
+        /* 기록 저장 */
+
+        historyData.unshift({
+            start:startTime,
+            end:endTime,
+            total:totalMin + "분",
+            graph:[...currentGraphData],
+            labels:[...currentGraphLabels]
+        });
+
+        renderHistory();
+
+        /* 초기화 */
+
+        pressureChart.data.labels = [];
+        pressureChart.data.datasets[0].data = [];
+        pressureChart.update();
+
+        connectSeconds = 0;
+
+        document.getElementById("connectedTime")
+            .innerHTML = "0분 0초";
+
+        document.getElementById("warningBox")
+            .style.display = "none";
 
         topArea.classList.remove("safe");
         topArea.classList.remove("connectedCompact");
@@ -514,16 +556,6 @@ function toggleDevice(){
 
         liveState.innerHTML =
             "연결 종료됨";
-
-        clearInterval(interval);
-
-        connectSeconds = 0;
-
-        document.getElementById("connectedTime")
-            .innerHTML = "0분 0초";
-
-        document.getElementById("warningBox")
-            .style.display = "none";
 
     }
 
@@ -562,30 +594,19 @@ function startPressure(){
 
     interval = setInterval(()=>{
 
-        pressureValue =
-            Math.floor(
-                40 + Math.random() * 30
-            );
+        /* 거의 일정한 압력 */
+
+        let pressureValue =
+            49 + (Math.random() * 2);
 
         let current = new Date();
 
-        let hour =
-            current.getHours()
-            .toString()
-            .padStart(2,'0');
-
-        let minute =
-            current.getMinutes()
-            .toString()
-            .padStart(2,'0');
-
-        let second =
-            current.getSeconds()
-            .toString()
-            .padStart(2,'0');
-
         let timeLabel =
-            hour + ":" + minute + ":" + second;
+            current.getHours().toString().padStart(2,'0')
+            + ":" +
+            current.getMinutes().toString().padStart(2,'0')
+            + ":" +
+            current.getSeconds().toString().padStart(2,'0');
 
         pressureChart.data.labels.push(timeLabel);
 
@@ -594,28 +615,103 @@ function startPressure(){
 
         pressureChart.update();
 
+        currentGraphData.push(pressureValue);
+        currentGraphLabels.push(timeLabel);
+
         sameTime++;
 
-        /* 경고 한번만 */
+        /* 경고 1번만 */
 
-        if(sameTime >= limit){
+        if(sameTime >= limit && !warningSent){
 
-            if(!warningSent){
+            warningSent = true;
 
-                warningSent = true;
+            document.getElementById("warningBox")
+                .style.display = "block";
 
-                document.getElementById("warningBox")
-                    .style.display = "block";
-
-                alert(
-                    "분실물 감지! 물건을 확인하세요."
-                );
-
-            }
+            alert(
+                "분실물 감지! 물건을 확인하세요."
+            );
 
         }
 
     },1000);
+
+}
+
+/* 기록 출력 */
+
+function renderHistory(){
+
+    const container =
+        document.getElementById("historyContainer");
+
+    container.innerHTML = "";
+
+    historyData.forEach((item,index)=>{
+
+        container.innerHTML += `
+
+        <div class="historyCard"
+            onclick="showHistory(${index})">
+
+            <h3>사용 기록 #${index+1}</h3>
+
+            <p>
+                ${item.start} ~ ${item.end}
+            </p>
+
+            <p>
+                총 사용 시간 :
+                ${item.total}
+            </p>
+
+        </div>
+
+        `;
+
+    });
+
+}
+
+/* 기록 상세 */
+
+function showHistory(index){
+
+    const item = historyData[index];
+
+    document.getElementById("detailBox")
+        .innerHTML = `
+
+        <br>
+
+        <h3>
+            사용 시간 :
+            ${item.start} ~ ${item.end}
+        </h3>
+
+        <br>
+
+        <h3>
+            총 사용 시간 :
+            ${item.total}
+        </h3>
+
+        <br>
+
+        <p>
+            압력값 기록 :
+        </p>
+
+        <br>
+
+        <p>
+            ${item.graph
+                .map(v=>v.toFixed(1))
+                .join(" → ")}
+        </p>
+
+        `;
 
 }
 
