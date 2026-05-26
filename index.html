@@ -1,301 +1,369 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SNS 사용 조절 앱</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: "Pretendard", sans-serif;
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SafeTable</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+    *{
+        margin:0;
+        padding:0;
+        box-sizing:border-box;
+        font-family:'Pretendard', sans-serif;
     }
 
-    body {
-      background: #f4f6fb;
-      color: #222;
-      display: flex;
-      justify-content: center;
-      padding: 40px 20px;
+    body{
+        background:#111;
+        color:white;
+        transition:0.5s;
+        overflow-x:hidden;
     }
 
-    .phone {
-      width: 390px;
-      background: white;
-      border-radius: 30px;
-      overflow: hidden;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    .app{
+        width:100%;
+        min-height:100vh;
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        padding-bottom:100px;
     }
 
-    .header {
-      background: linear-gradient(135deg, #4f46e5, #7c3aed);
-      color: white;
-      padding: 30px 25px;
+    .top{
+        width:100%;
+        padding:40px 20px;
+        text-align:center;
+        transition:0.5s;
     }
 
-    .header h1 {
-      font-size: 28px;
-      margin-bottom: 10px;
+    .danger{
+        background:linear-gradient(135deg,#5a0000,#c90000);
     }
 
-    .header p {
-      opacity: 0.9;
-      line-height: 1.5;
+    .safe{
+        background:linear-gradient(135deg,#006b2d,#00b85c);
     }
 
-    .content {
-      padding: 24px;
+    .title{
+        font-size:40px;
+        font-weight:bold;
+        margin-bottom:10px;
     }
 
-    .card {
-      background: #fff;
-      border-radius: 20px;
-      padding: 20px;
-      margin-bottom: 18px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    .status{
+        font-size:24px;
+        margin-top:15px;
     }
 
-    .card h2 {
-      font-size: 20px;
-      margin-bottom: 15px;
+    .device{
+        margin-top:10px;
+        opacity:0.9;
     }
 
-    .usage-time {
-      font-size: 42px;
-      font-weight: bold;
-      color: #4f46e5;
-      margin-bottom: 10px;
+    .connectBtn{
+        margin-top:25px;
+        padding:15px 30px;
+        border:none;
+        border-radius:20px;
+        background:white;
+        color:black;
+        font-size:18px;
+        cursor:pointer;
+        font-weight:bold;
     }
 
-    .progress-container {
-      width: 100%;
-      height: 14px;
-      background: #e5e7eb;
-      border-radius: 999px;
-      overflow: hidden;
-      margin-top: 10px;
+    .page{
+        display:none;
+        width:100%;
+        padding:25px;
     }
 
-    .progress {
-      width: 70%;
-      height: 100%;
-      background: linear-gradient(90deg, #4f46e5, #7c3aed);
-      transition: 0.4s;
+    .active{
+        display:block;
     }
 
-    .app-list {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
+    .card{
+        background:#1e1e1e;
+        border-radius:20px;
+        padding:20px;
+        margin-bottom:20px;
+        box-shadow:0 0 15px rgba(0,0,0,0.3);
     }
 
-    .app-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #f8fafc;
-      border-radius: 14px;
-      padding: 14px;
+    .card h2{
+        margin-bottom:15px;
     }
 
-    .app-info {
-      display: flex;
-      align-items: center;
-      gap: 12px;
+    .bottomNav{
+        position:fixed;
+        bottom:0;
+        left:0;
+        width:100%;
+        height:80px;
+        background:#181818;
+        display:flex;
+        justify-content:space-around;
+        align-items:center;
+        border-top:2px solid #333;
     }
 
-    .icon {
-      width: 45px;
-      height: 45px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-weight: bold;
-      font-size: 18px;
+    .navBtn{
+        color:white;
+        background:none;
+        border:none;
+        font-size:18px;
+        cursor:pointer;
     }
 
-    .instagram { background: #ec4899; }
-    .youtube { background: #ef4444; }
-    .tiktok { background: #111827; }
-
-    .warning {
-      background: #fef2f2;
-      border: 2px solid #f87171;
-      color: #991b1b;
+    input{
+        width:100%;
+        padding:12px;
+        border-radius:10px;
+        border:none;
+        margin-top:10px;
+        margin-bottom:20px;
+        font-size:16px;
     }
 
-    .warning h3 {
-      margin-bottom: 8px;
+    .warning{
+        margin-top:20px;
+        padding:20px;
+        border-radius:15px;
+        background:#ff4444;
+        font-size:20px;
+        display:none;
+        animation:blink 1s infinite;
     }
 
-    .btn {
-      width: 100%;
-      border: none;
-      padding: 16px;
-      border-radius: 14px;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: 0.3s;
+    @keyframes blink{
+        0%{opacity:1;}
+        50%{opacity:0.5;}
+        100%{opacity:1;}
     }
 
-    .slow-btn {
-      background: linear-gradient(135deg, #ef4444, #dc2626);
-      color: white;
+    .simulateBtn{
+        margin-top:15px;
+        padding:15px;
+        width:100%;
+        border:none;
+        border-radius:15px;
+        background:#00b85c;
+        color:white;
+        font-size:18px;
+        cursor:pointer;
     }
 
-    .slow-btn:hover {
-      transform: translateY(-2px);
+    canvas{
+        background:white;
+        border-radius:15px;
+        padding:10px;
     }
 
-    .focus-btn {
-      margin-top: 12px;
-      background: #4f46e5;
-      color: white;
-    }
-
-    .status {
-      margin-top: 14px;
-      text-align: center;
-      font-weight: bold;
-      color: #dc2626;
-    }
-
-    .footer {
-      text-align: center;
-      color: #6b7280;
-      font-size: 13px;
-      margin-top: 8px;
-      line-height: 1.5;
-    }
-  </style>
+</style>
 </head>
+
 <body>
 
-  <div class="phone">
+<div class="app">
 
-    <div class="header">
-      <h1>Focus SNS</h1>
-      <p>
-        SNS 사용 시간을 분석하고<br>
-        과도한 사용을 줄여주는 집중 관리 앱
-      </p>
+    <div class="top danger" id="topArea">
+
+        <div class="title">SafeTable</div>
+
+        <div class="status" id="statusText">
+            ⚠ 분실 위험 있음
+        </div>
+
+        <div class="device" id="deviceText">
+            현재 연결된 기기 없음
+        </div>
+
+        <button class="connectBtn" onclick="connectDevice()">
+            기기 연결하기
+        </button>
+
     </div>
 
-    <div class="content">
+    <!-- 기본창 -->
+    <div class="page active" id="homePage">
 
-      <div class="card">
-        <h2>오늘의 SNS 사용 시간</h2>
-        <div class="usage-time" id="usageText">2시간 10분</div>
-        <p>목표 사용 시간: 1시간 30분</p>
+        <div class="card">
+            <h2>현재 상태</h2>
 
-        <div class="progress-container">
-          <div class="progress" id="progressBar"></div>
-        </div>
-      </div>
+            <p>
+                테이블 위에 물건이 일정 시간 이상 감지되면
+                사용자에게 경고 알림을 전송합니다.
+            </p>
 
-      <div class="card">
-        <h2>앱별 사용 현황</h2>
-
-        <div class="app-list">
-
-          <div class="app-item">
-            <div class="app-info">
-              <div class="icon instagram">I</div>
-              <div>
-                <strong>Instagram</strong><br>
-                58분 사용
-              </div>
+            <div class="warning" id="warningBox">
+                🚨 분실물 감지됨! 물건을 확인하세요.
             </div>
-            <span>⚠️</span>
-          </div>
-
-          <div class="app-item">
-            <div class="app-info">
-              <div class="icon youtube">Y</div>
-              <div>
-                <strong>YouTube Shorts</strong><br>
-                42분 사용
-              </div>
-            </div>
-            <span>⚠️</span>
-          </div>
-
-          <div class="app-item">
-            <div class="app-info">
-              <div class="icon tiktok">T</div>
-              <div>
-                <strong>TikTok</strong><br>
-                30분 사용
-              </div>
-            </div>
-            <span>정상</span>
-          </div>
 
         </div>
-      </div>
-
-      <div class="card warning">
-        <h3>⚠ SNS 과다 사용 감지</h3>
-        <p>
-          설정한 사용 시간을 초과했습니다.<br>
-          집중 모드를 활성화하시겠습니까?
-        </p>
-      </div>
-
-      <button class="btn slow-btn" onclick="activateSlowMode()">
-        인터넷 속도 제한 모드 활성화
-      </button>
-
-      <button class="btn focus-btn" onclick="startFocusMode()">
-        30분 집중 모드 시작
-      </button>
-
-      <div class="status" id="statusText"></div>
-
-      <div class="footer">
-        창의적 공학입문 설계 프로젝트<br>
-        SNS 중독 예방 및 사용 습관 개선 시스템
-      </div>
 
     </div>
-  </div>
 
-  <script>
+    <!-- 설정창 -->
+    <div class="page" id="settingPage">
 
-    let slowMode = false;
+        <div class="card">
 
-    function activateSlowMode() {
-      const status = document.getElementById("statusText");
+            <h2>사용자 정보</h2>
 
-      slowMode = !slowMode;
+            <label>사용자 이름</label>
+            <input type="text" placeholder="이름 입력">
 
-      if (slowMode) {
-        status.innerHTML = "🚫 SNS 제한 모드 활성화됨 - 인터넷 속도 감소";
-      } else {
-        status.innerHTML = "✅ 제한 모드 해제됨";
-      }
+            <label>기기 이름</label>
+            <input type="text" placeholder="테이블 3번">
+
+            <label>압력 인식 시간 (초)</label>
+            <input type="number" id="timeLimit" value="10">
+
+            <label>알림 방식</label>
+            <input type="text" placeholder="앱 알림">
+
+        </div>
+
+    </div>
+
+    <!-- 압력값 -->
+    <div class="page" id="graphPage">
+
+        <div class="card">
+
+            <h2>압력 변화 그래프</h2>
+
+            <canvas id="pressureChart"></canvas>
+
+            <button class="simulateBtn" onclick="startSimulation()">
+                시뮬레이션 시작
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- 하단 메뉴 -->
+<div class="bottomNav">
+
+    <button class="navBtn" onclick="showPage('homePage')">
+        기본창
+    </button>
+
+    <button class="navBtn" onclick="showPage('settingPage')">
+        설정창
+    </button>
+
+    <button class="navBtn" onclick="showPage('graphPage')">
+        압력값
+    </button>
+
+</div>
+
+<script>
+
+    let connected = false;
+    let simulationRunning = false;
+    let pressureValue = 0;
+    let sameTime = 0;
+
+    function connectDevice(){
+
+        connected = true;
+
+        document.getElementById("topArea").classList.remove("danger");
+        document.getElementById("topArea").classList.add("safe");
+
+        document.getElementById("statusText").innerHTML =
+            "✔ 기기 연결됨";
+
+        document.getElementById("deviceText").innerHTML =
+            "연결된 기기 : Table Sensor #03";
+
     }
 
-    function startFocusMode() {
-      const status = document.getElementById("statusText");
-      status.innerHTML = "⏳ 30분 집중 모드가 시작되었습니다.";
+    function showPage(pageId){
+
+        let pages = document.querySelectorAll(".page");
+
+        pages.forEach(page=>{
+            page.classList.remove("active");
+        });
+
+        document.getElementById(pageId).classList.add("active");
+
     }
 
-    // 가짜 실시간 사용량 증가 효과
-    let progress = 70;
+    const ctx = document.getElementById('pressureChart');
 
-    setInterval(() => {
-      if (progress < 100) {
-        progress += 1;
-        document.getElementById("progressBar").style.width = progress + "%";
-      }
-    }, 5000);
+    const pressureChart = new Chart(ctx, {
+        type:'line',
+        data:{
+            labels:[],
+            datasets:[{
+                label:'압력값',
+                data:[],
+                borderColor:'red',
+                borderWidth:3,
+                tension:0.3
+            }]
+        },
+        options:{
+            responsive:true,
+            scales:{
+                y:{
+                    beginAtZero:true
+                }
+            }
+        }
+    });
 
-  </script>
+    function startSimulation(){
+
+        if(simulationRunning) return;
+
+        simulationRunning = true;
+
+        pressureValue = 50;
+
+        let count = 0;
+
+        let limit =
+            parseInt(document.getElementById("timeLimit").value);
+
+        const interval = setInterval(()=>{
+
+            count++;
+
+            pressureChart.data.labels.push(count + "초");
+            pressureChart.data.datasets[0].data.push(pressureValue);
+
+            pressureChart.update();
+
+            sameTime++;
+
+            if(sameTime >= limit){
+
+                document.getElementById("warningBox").style.display =
+                    "block";
+
+                alert("분실물 감지! 물건을 확인하세요.");
+
+                clearInterval(interval);
+
+                simulationRunning = false;
+
+            }
+
+        },1000);
+
+    }
+
+</script>
 
 </body>
 </html>
